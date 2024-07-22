@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Food Demand Prediction</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+
+    .navbar {
+      margin-bottom: 0;
+      border-radius: 0;
+      background-color: #34495e;
+      border-color: #2c3e50;
+    }
+
+    .navbar-inverse .navbar-nav>li>a {
+      color: #ecf0f1;
+    }
+
+    .navbar-inverse .navbar-nav>li>a:hover {
+      background-color: #2c3e50;
+    }
+
+    .container {
+      padding: 20px;
+    }
+
+    .form-container {
+      background: #fff;
+      padding: 30px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      border-radius: 12px;
+      margin: 20px auto;
+      max-width: 700px;
+    }
+
+    .form-container h2 {
+      margin-bottom: 30px;
+      color: #2c3e50;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .form-group {
+      margin-bottom: 25px;
+    }
+
+    .form-group label {
+      font-weight: 600;
+      color: #34495e;
+    }
+
+    .form-control, .custom-select {
+      border: 2px solid #bdc3c7;
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 16px;
+      transition: border-color 0.3s ease;
+    }
+
+    .form-control:focus, .custom-select:focus {
+      border-color: #3498db;
+      box-shadow: none;
+    }
+
+    .btn-primary {
+      background-color: #3498db;
+      border: none;
+      padding: 12px 20px;
+      font-size: 18px;
+      font-weight: 600;
+      border-radius: 6px;
+      transition: background-color 0.3s ease;
+    }
+
+    .btn-primary:hover {
+      background-color: #2980b9;
+    }
+
+    .prediction-container {
+      background-color: #e8f4fd;
+      border: 2px solid #3498db;
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 30px;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    .prediction-container.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .prediction-text {
+      font-size: 1.4em;
+      color: #2c3e50;
+      font-weight: bold;
+    }
+
+    .prediction-icon {
+      font-size: 2em;
+      color: #3498db;
+      margin-right: 10px;
+    }
+
+    footer {
+      background-color: #34495e;
+      color: #ecf0f1;
+      padding: 15px;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      text-align: center;
+    }
+
+    .form-row {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .form-row .form-group {
+      flex: 0 0 48%;
+    }
+
+    .nav-buttons {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .nav-buttons .btn {
+      margin: 0 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .btn-home {
+      background-color: #2ecc71;
+      color: white;
+    }
+
+    .btn-home:hover {
+      background-color: #27ae60;
+      color: white;
+    }
+
+    .btn-prediction {
+      background-color: #e74c3c;
+      color: white;
+    }
+
+    .btn-prediction:hover {
+      background-color: #c0392b;
+      color: white;
+    }
+
+  </style>
+
+<style>
+  /* ... existing styles ... */
+
+  .jumbotron {
+    background-color: rgba(52, 152, 219, 0.1);
+    margin-bottom: 0;
+    padding: 2rem 1rem;
+  }
+
+  .jumbotron h1 {
+    color: #2c3e50;
+    font-weight: bold;
+    font-size: 3rem;
+  }
+
+  .jumbotron .lead {
+    color: #34495e;
+    font-size: 2rem;
+  }
+
+  .jumbotron hr {
+    border-color: #3498db;
+  }
+
+  .jumbotron p:last-child {
+    color: #2980b9;
+    font-style: italic;
+    font-size: 2.5rem;
+  }
+
+  @media (max-width: 768px) {
+    .jumbotron h1 {
+      font-size: 2rem;
+    }
+
+    .jumbotron .lead {
+      font-size: 1rem;
+    }
+
+    .jumbotron p:last-child {
+      font-size: 0.9rem;
+    }
+  }
+</style>
+</head>
+<body>
+
+<nav class="navbar navbar-inverse">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>                        
+      </button>
+      <a class="navbar-brand" href="#"></a>
+    </div>
+    <div class="collapse navbar-collapse" id="myNavbar">
+      <ul class="nav navbar-nav">
+        <li><a href="/home">Home</a></li>
+        <li class="active"><a href="/pred">Prediction</a></li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+          <a href="https://github.com/smartinternz02/SBSPS-Challenge-5858-Food-Demand-Forecasting-for-Food-Delivery-Company-using-IBM-Cloud">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16">
+              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+            </svg> 
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="jumbotron text-center" style="background-color: rgba(52, 152, 219, 0.1); margin-bottom: 0; padding: 2rem 1rem;">
+  <div class="container">
+    <h1 class="display-4" style="color: #2c3e50; font-weight: bold;">Welcome to Food Demand Forecasting</h1>
+    <p class="lead" style="color: #34495e;">
+      Predict the future of food delivery with precision! Our advanced machine learning model analyzes various factors to forecast food demand accurately. Whether you're a restaurant owner, delivery service, or food industry analyst, our tool provides valuable insights to optimize your operations and meet customer needs.
+    </p>
+    <hr class="my-4" style="border-color: #3498db;">
+    <p style="color: #2980b9; font-style: italic;">
+      Enter your parameters below and let our AI-powered system calculate the projected food demand for you!
+    </p>
+  </div>
+</div>
+
+  <div class="form-container">
+    <h2><i class="fas fa-utensils"></i> Food Demand Prediction</h2>
+    <form method="POST" action="/predict" id="prediction-form" class="was-validated">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="homepage_featured"><i class="fas fa-star"></i> Homepage Featured</label>
+          <select class="form-control custom-select" id="homepage_featured" name="homepage_featured" required>
+            <option value="">Select option</option>
+            <option value="0">No</option>
+            <option value="1">Yes</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="emailer_for_promotion"><i class="fas fa-envelope"></i> Emailer for Promotion</label>
+          <select class="form-control custom-select" id="emailer_for_promotion" name="emailer_for_promotion" required>
+            <option value="">Select option</option>
+            <option value="0">No</option>
+            <option value="1">Yes</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="Op_code"><i class="fas fa-code"></i> Op Code</label>
+          <input type="number" class="form-control" id="Op_code" name="Op_code" required>
+        </div>
+        <div class="form-group">
+          <label for="city_code"><i class="fas fa-city"></i> City Code</label>
+          <input type="number" class="form-control" id="city_code" name="city_code" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="region_code"><i class="fas fa-map-marker-alt"></i> Region Code</label>
+        <input type="number" class="form-control" id="region_code" name="region_code" required>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="cuisine"><i class="fas fa-globe-americas"></i> Cuisine</label>
+          <select class="form-control custom-select" id="cuisine" name="cuisine" required>
+            <option value="">Select cuisine</option>
+            <option value="0">Thai</option>
+            <option value="1">Indian</option>
+            <option value="2">Italian</option>
+            <option value="3">Continental</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="category"><i class="fas fa-list"></i> Category</label>
+          <select class="form-control custom-select" id="category" name="category" required>
+            <option value="">Select category</option>
+            <option value="0">Beverages</option>
+            <option value="1">Extras</option>
+            <option value="2">Soup</option>
+            <option value="3">Salad</option>
+            <option value="4">Rice Bowl</option>
+            <option value="5">Other Snacks</option>
+            <option value="6">Starters</option>
+            <option value="7">Sandwich</option>
+            <option value="8">Desert</option>
+            <option value="9">Biryani</option>
+            <option value="10">Pasta</option>
+            <option value="11">Pizza</option>
+            <option value="12">Fish</option>
+            <option value="13">Seafood</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <button type="submit" class="btn btn-primary btn-block"><i class="fas fa-calculator"></i> Predict Demand</button>
+      </div>
+    </form>
+    
+    <div class="prediction-container" id="prediction-container" style="display: none;">
+      <i class="fas fa-chart-line prediction-icon"></i>
+      <span class="prediction-text">Prediction: <span id="prediction-value"></span></span>
+    </div>
+  </div>
+</div>
+
+<footer class="container-fluid text-center">
+  <p>Food Demand Forecasting Project</p>
+</footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('prediction-form');
+  const predictionContainer = document.getElementById('prediction-container');
+  const predictionValue = document.getElementById('prediction-value');
+  
+  form.addEventListener('submit', function(event) {
+    event.preventDefault();
+    
+    // Validate form
+    if (form.checkValidity() === false) {
+      event.stopPropagation();
+      form.classList.add('was-validated');
+      return;
+    }
+    
+    // Collect form data
+    const formData = new FormData(form);
+    
+    // Send AJAX request
+    fetch('/predict', {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.error) {
+        predictionValue.textContent = data.error;
+      } else {
+        predictionValue.textContent = data.prediction.toFixed(2);
+      }
+      
+      // Show prediction container with animation
+      predictionContainer.style.display = 'block';
+      predictionContainer.classList.add('show');
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      predictionValue.textContent = 'Error occurred. Please try again.';
+      predictionContainer.style.display = 'block';
+      predictionContainer.classList.add('show');
+    });
+  });
+});
+</script>
+
+</body>
+</html>
